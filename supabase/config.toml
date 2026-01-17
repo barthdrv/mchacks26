@@ -1,0 +1,7 @@
+project_id = "brvsdmmwyyvuzhdvuqjs"
+
+[functions.generate-schedule]
+verify_jwt = false
+
+[functions.parse-syllabus]
+verify_jwt = false
