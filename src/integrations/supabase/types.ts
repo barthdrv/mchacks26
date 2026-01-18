@@ -55,6 +55,54 @@ export type Database = {
           },
         ]
       }
+      friend_requests: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          status: string
+          to_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          status?: string
+          to_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          status?: string
+          to_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          created_at: string
+          friend_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       homework_assignments: {
         Row: {
           completed: boolean
@@ -99,27 +147,78 @@ export type Database = {
           },
         ]
       }
-      profiles: {
+      planned_events: {
         Row: {
+          category: string
           created_at: string
-          email: string | null
+          duration: number
+          end_time: string
+          event_date: string
           id: string
+          is_private: boolean
+          notes: string | null
+          start_time: string
+          title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          category?: string
           created_at?: string
-          email?: string | null
+          duration?: number
+          end_time: string
+          event_date: string
           id?: string
+          is_private?: boolean
+          notes?: string | null
+          start_time: string
+          title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          category?: string
           created_at?: string
-          email?: string | null
+          duration?: number
+          end_time?: string
+          event_date?: string
           id?: string
+          is_private?: boolean
+          notes?: string | null
+          start_time?: string
+          title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          schedule_visibility: string
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          schedule_visibility?: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          schedule_visibility?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -155,10 +254,71 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          display_name: string | null
+          schedule_visibility: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          display_name?: string | null
+          schedule_visibility?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          display_name?: string | null
+          schedule_visibility?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      are_friends: {
+        Args: { user1_id: string; user2_id: string }
+        Returns: boolean
+      }
+      can_view_schedule: {
+        Args: { owner_id: string; viewer_id: string }
+        Returns: boolean
+      }
+      get_friend_class_schedules: {
+        Args: { friend_user_id: string }
+        Returns: {
+          course_name: string
+          day_of_week: number
+          end_time: string
+          id: string
+          location: string
+          start_time: string
+          syllabus_id: string
+        }[]
+      }
+      get_friend_planned_events: {
+        Args: { end_date: string; friend_user_id: string; start_date: string }
+        Returns: {
+          category: string
+          duration: number
+          end_time: string
+          event_date: string
+          id: string
+          notes: string
+          start_time: string
+          title: string
+        }[]
+      }
       is_syllabus_owner: { Args: { syllabus_uuid: string }; Returns: boolean }
+      search_users_by_username: {
+        Args: { search_query: string }
+        Returns: {
+          display_name: string
+          user_id: string
+          username: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

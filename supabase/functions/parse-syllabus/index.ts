@@ -82,11 +82,27 @@ serve(async (req) => {
     );
 
     const fileExtension = fileName.split(".").pop()?.toLowerCase();
-    const mimeType = fileExtension === "pdf" 
-      ? "application/pdf" 
-      : fileExtension === "docx" 
-        ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        : "application/msword";
+    let mimeType: string;
+    switch (fileExtension) {
+      case "pdf":
+        mimeType = "application/pdf";
+        break;
+      case "docx":
+        mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        break;
+      case "doc":
+        mimeType = "application/msword";
+        break;
+      case "jpg":
+      case "jpeg":
+        mimeType = "image/jpeg";
+        break;
+      case "png":
+        mimeType = "image/png";
+        break;
+      default:
+        mimeType = "application/octet-stream";
+    }
 
     const systemPrompt = `You are an expert at parsing academic syllabi. Your job is to extract structured information from course syllabi including:
 1. Course name

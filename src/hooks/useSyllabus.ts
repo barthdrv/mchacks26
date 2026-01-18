@@ -167,18 +167,71 @@ export function useSyllabus(userId: string | undefined) {
       setAssignments((prev) =>
         prev.map((a) => (a.id === assignmentId ? { ...a, completed } : a))
       );
+      
+      if (completed) {
+        toast.success("Assignment marked as complete!");
+      }
     } catch (error) {
       console.error("Error updating assignment:", error);
       toast.error("Failed to update assignment");
     }
   }, []);
 
+  // Delete assignment
+  const deleteAssignment = useCallback(async (assignmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from("homework_assignments")
+        .delete()
+        .eq("id", assignmentId);
+
+      if (error) throw error;
+
+      setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+      toast.success("Assignment removed");
+    } catch (error) {
+      console.error("Error deleting assignment:", error);
+      toast.error("Failed to delete assignment");
+    }
+  }, []);
+
+  // Update syllabus (e.g., course name)
+  const updateSyllabus = useCallback(async (
+    syllabusId: string,
+    updates: { course_name?: string; semester_end_date?: string | null }
+  ) => {
+    try {
+      const { error } = await supabase
+        .from("syllabi")
+        .update(updates)
+        .eq("id", syllabusId);
+
+      if (error) throw error;
+
+      // Also update course_name in related class_schedules if course_name changed
+      if (updates.course_name) {
+        const { error: scheduleError } = await supabase
+          .from("class_schedules")
+          .update({ course_name: updates.course_name })
+          .eq("syllabus_id", syllabusId);
+
+        if (scheduleError) throw scheduleError;
+      }
+
+      toast.success("Course updated");
+      await fetchData();
+    } catch (error) {
+      console.error("Error updating syllabus:", error);
+      toast.error("Failed to update course");
+    }
+  }, [fetchData]);
+
   // Delete syllabus
   const deleteSyllabus = useCallback(async (syllabusId: string) => {
     try {
       const syllabus = syllabi.find((s) => s.id === syllabusId);
-      if (syllabus) {
-        // Delete file from storage
+      if (syllabus && syllabus.file_path !== 'manual') {
+        // Delete file from storage (skip for manual entries)
         await supabase.storage.from("syllabi").remove([syllabus.file_path]);
       }
 
@@ -197,6 +250,117 @@ export function useSyllabus(userId: string | undefined) {
       toast.error("Failed to delete syllabus");
     }
   }, [syllabi, fetchData]);
+
+  // Add class schedule manually
+  const addClassSchedule = useCallback(async (schedule: {
+    course_name: string;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+    location?: string;
+    syllabus_id?: string;
+  }) => {
+    if (!userId) {
+      toast.error("Please sign in to add a class schedule");
+      return;
+    }
+
+    try {
+      // If no syllabus_id, find existing syllabus or create a placeholder
+      let syllabusId = schedule.syllabus_id;
+      
+      if (!syllabusId) {
+        // Check if ANY syllabus already exists for this course (imported or manual)
+        const existingSyllabus = syllabi.find(
+          s => s.course_name === schedule.course_name
+        );
+        
+        if (existingSyllabus) {
+          syllabusId = existingSyllabus.id;
+        } else {
+          // Create a new manual syllabus only if no existing course found
+          const { data: newSyllabus, error: syllabusError } = await supabase
+            .from("syllabi")
+            .insert({
+              user_id: userId,
+              file_path: 'manual',
+              course_name: schedule.course_name,
+            })
+            .select()
+            .single();
+          
+          if (syllabusError) throw syllabusError;
+          syllabusId = newSyllabus.id;
+        }
+      }
+
+      const { error } = await supabase
+        .from("class_schedules")
+        .insert({
+          syllabus_id: syllabusId,
+          course_name: schedule.course_name,
+          day_of_week: schedule.day_of_week,
+          start_time: schedule.start_time,
+          end_time: schedule.end_time,
+          location: schedule.location || null,
+        });
+
+      if (error) throw error;
+
+      toast.success("Class schedule added");
+      await fetchData();
+    } catch (error) {
+      console.error("Error adding class schedule:", error);
+      toast.error("Failed to add class schedule");
+    }
+  }, [userId, syllabi, fetchData]);
+
+  // Update class schedule
+  const updateClassSchedule = useCallback(async (
+    scheduleId: string,
+    updates: {
+      course_name?: string;
+      day_of_week?: number;
+      start_time?: string;
+      end_time?: string;
+      location?: string | null;
+    }
+  ) => {
+    try {
+      const { error } = await supabase
+        .from("class_schedules")
+        .update(updates)
+        .eq("id", scheduleId);
+
+      if (error) throw error;
+
+      setClassSchedules((prev) =>
+        prev.map((s) => (s.id === scheduleId ? { ...s, ...updates } : s))
+      );
+      toast.success("Class schedule updated");
+    } catch (error) {
+      console.error("Error updating class schedule:", error);
+      toast.error("Failed to update class schedule");
+    }
+  }, []);
+
+  // Delete class schedule
+  const deleteClassSchedule = useCallback(async (scheduleId: string) => {
+    try {
+      const { error } = await supabase
+        .from("class_schedules")
+        .delete()
+        .eq("id", scheduleId);
+
+      if (error) throw error;
+
+      setClassSchedules((prev) => prev.filter((s) => s.id !== scheduleId));
+      toast.success("Class schedule deleted");
+    } catch (error) {
+      console.error("Error deleting class schedule:", error);
+      toast.error("Failed to delete class schedule");
+    }
+  }, []);
 
   // Get upcoming assignments (not completed, due in the future or today)
   const upcomingAssignments = assignments.filter((a) => {
@@ -226,8 +390,13 @@ export function useSyllabus(userId: string | undefined) {
     isLoading,
     isUploading,
     uploadSyllabus,
+    updateSyllabus,
     toggleAssignmentComplete,
+    deleteAssignment,
     deleteSyllabus,
+    addClassSchedule,
+    updateClassSchedule,
+    deleteClassSchedule,
     getTodaysClasses,
     getClassesForDay,
     refreshData: fetchData,

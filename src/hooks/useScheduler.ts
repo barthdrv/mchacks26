@@ -72,6 +72,13 @@ export function useScheduler(userId?: string) {
         content: m.content,
       }));
 
+      // Get user's local date and time info
+      const now = new Date();
+      const localDate = now.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+      const localDayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+      const localTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }); // HH:MM format
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       const { data, error } = await supabase.functions.invoke("generate-schedule", {
         body: {
           messages: [
@@ -79,6 +86,10 @@ export function useScheduler(userId?: string) {
             { role: "user", content },
           ],
           userId, // Pass userId to include academic data
+          localDate, // User's local date
+          localDayName, // User's local day name
+          localTime, // User's current local time
+          timezone, // User's timezone
         },
       });
 
@@ -135,6 +146,24 @@ export function useScheduler(userId?: string) {
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
+  const removeScheduleBlocksForText = useCallback((text: string) => {
+    const needle = text.trim().toLowerCase();
+    if (!needle) return;
+
+    setSchedules((prev) => {
+      const next = prev.map((day) => ({
+        ...day,
+        blocks: day.blocks.filter((block) => {
+          const haystack = `${block.title} ${block.notes ?? ""}`.toLowerCase();
+          return !haystack.includes(needle);
+        }),
+      }));
+
+      setHasSchedule(next.some((d) => d.blocks.length > 0));
+      return next;
+    });
+  }, []);
+
   return {
     messages,
     schedules,
@@ -144,5 +173,6 @@ export function useScheduler(userId?: string) {
     sendMessage,
     resetSchedule,
     clearAll,
+    removeScheduleBlocksForText,
   };
 }

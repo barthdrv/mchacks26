@@ -1,19 +1,25 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Download, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TimeBlock } from "./TimeBlock";
+import { CalendarExportDialog } from "./CalendarExportDialog";
 import type { ScheduleDay } from "@/types/schedule";
 
 interface ScheduleViewProps {
   schedules: ScheduleDay[];
   summary: string;
   onEdit: () => void;
-  onExport: (format: 'ics') => void;
+  onExport: (format: "apple" | "google") => void;
 }
 
 export function ScheduleView({ schedules, summary, onEdit, onExport }: ScheduleViewProps) {
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    // Parse YYYY-MM-DD as local date (not UTC) to avoid timezone shift
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       month: "long",
@@ -44,13 +50,19 @@ export function ScheduleView({ schedules, summary, onEdit, onExport }: ScheduleV
           Edit schedule
         </Button>
         <Button
-          onClick={() => onExport('ics')}
+          onClick={() => setExportDialogOpen(true)}
           className="gradient-hero text-primary-foreground rounded-xl"
         >
           <Download className="h-4 w-4 mr-2" />
           Export to Calendar
         </Button>
       </div>
+
+      <CalendarExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        onExport={onExport}
+      />
 
       {/* Schedule days */}
       {schedules.map((day, dayIndex) => (
