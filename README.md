@@ -1,73 +1,100 @@
-# Welcome to your Lovable project
+# SnowPlanner ❄️
 
-## Project info
+An AI-powered daily schedule planner that helps students organize their time, manage courses, and coordinate with friends.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+### 🤖 AI Schedule Generation
+- Chat-based interface to describe your day naturally
+- AI generates optimized visual time blocks for your activities
+- Export schedules to Apple Calendar, Google Calendar, or other ICS-compatible apps
 
-There are several ways of editing your application.
+### 📚 Course Management
+- Upload syllabi (PDF) for automatic parsing of assignments and class schedules
+- Track homework assignments with due dates and completion status
+- Manually add classes with recurring weekly schedules
 
-**Use Lovable**
+### 📅 Weekly Calendar View
+- Visual weekly calendar showing all your classes and planned events
+- Color-coded categories (classes, study time, breaks, meals, etc.)
+- Toggle between daily planner and weekly overview
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### 👥 Friends & Schedule Comparison
+- Add friends by username to view their schedules
+- **Multi-select comparison**: Compare your schedule with multiple friends simultaneously
+- Find common free time slots across all selected schedules
+- Privacy controls for your events (public/private)
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🔐 Authentication
+- Secure user accounts with email/password authentication
+- Profile management with customizable display names and usernames
+- Schedule visibility settings (public, friends-only, private)
 
-**Use your preferred IDE**
+## Tech Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **Animations**: Framer Motion
+- **Backend**: Lovable Cloud (Supabase)
+  - PostgreSQL database with Row Level Security
+  - Edge Functions for AI integration and syllabus parsing
+  - Real-time subscriptions
+- **AI**: Lovable AI (GPT-based schedule generation)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Project Structure
 
-Follow these steps:
+```
+src/
+├── components/
+│   ├── ui/              # shadcn/ui components
+│   ├── AuthDialog.tsx   # Authentication modal
+│   ├── ChatInput.tsx    # Message input for AI chat
+│   ├── FriendsTab.tsx   # Friend management & comparison
+│   ├── ScheduleView.tsx # Daily schedule visualization
+│   ├── SyllabusUpload.tsx # Course/syllabus management
+│   ├── WeeklyCalendarView.tsx # Weekly calendar with friend comparison
+│   └── ...
+├── hooks/
+│   ├── useAuth.ts       # Authentication state
+│   ├── useFriends.ts    # Friend relationships
+│   ├── usePlannedEvents.ts # Event CRUD operations
+│   ├── useScheduler.ts  # AI chat & schedule generation
+│   └── useSyllabus.ts   # Syllabus & assignment management
+├── pages/
+│   └── Index.tsx        # Main dashboard
+├── types/
+│   ├── schedule.ts      # Schedule type definitions
+│   └── syllabus.ts      # Syllabus type definitions
+└── lib/
+    ├── calendar-export.ts # ICS file generation
+    └── utils.ts          # Utility functions
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+supabase/
+└── functions/
+    ├── generate-schedule/ # AI schedule generation
+    └── parse-syllabus/    # PDF syllabus parsing
 ```
 
-**Edit a file directly in GitHub**
+## Database Schema
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **profiles**: User profiles with display names and privacy settings
+- **syllabi**: Uploaded course syllabi
+- **class_schedules**: Recurring weekly class times
+- **homework_assignments**: Assignments with due dates
+- **planned_events**: User's scheduled events (from AI or manual)
+- **friendships**: Friend relationships between users
+- **friend_requests**: Pending friend requests
 
-**Use GitHub Codespaces**
+## Getting Started
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Start development server: `npm run dev`
 
-## What technologies are used for this project?
+## Live Demo
 
-This project is built with:
+Visit [snowplanner.ca](https://snowplanner.ca) to try the app.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## License
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT
